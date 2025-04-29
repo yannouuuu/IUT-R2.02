@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run current file",
+            "type": "java",
+            "request": "launch",
+            "mainClass": "${file}",
+            "vmArgs": "--module-path ./lib/javafx-sdk-24.0.1/lib/ --add-modules=javafx.controls,javafx.fxml"
+        },
+        {
+            "type": "java",
+            "name": "Run SimpleScene",
+            "request": "launch",
+            "mainClass": "SimpleScene",
+            "vmArgs" : "--module-path ./lib/javafx-sdk-24.0.1/lib/ --add-modules=javafx.controls,javafx.fxml",
+        }
+    ]
+}
