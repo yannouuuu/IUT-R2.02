@@ -2,6 +2,46 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "java",
+            "name": "MinimalExampleSquare",
+            "request": "launch",
+            "mainClass": "semaine2.tp02.MinimalExampleSquare",
+            "projectName": "IUT-R2.02_e8a95030",
+            "vmArgs": "--module-path ./lib/javafx-sdk-24.0.1/lib/ --add-modules=javafx.controls,javafx.fxml"
+        },
+        {
+            "type": "java",
+            "name": "MinimalExampleSquare",
+            "request": "launch",
+            "mainClass": "semaine2.tp02.MinimalExampleSquare",
+            "projectName": "--module-path ./lib/javafx-sdk-24.0.1/lib/ --add-modules=javafx.controls,javafx.fxml",
+            "vmArgs": "--module-path ./lib/javafx-sdk-24.0.1/lib/ --add-modules=javafx.controls,javafx.fxml"
+        },
+        {
+            "type": "java",
+            "name": "MinimalExampleSquare",
+            "request": "launch",
+            "mainClass": "semaine2.tp02.MinimalExampleSquare",
+            "projectName": "--module-path ./lib/javafx-sdk-24.0.1/lib/ --add-modules=javafx.controls,javafx.fxml",
+            "vmArgs": "--module-path ./lib/javafx-sdk-24.0.1/lib/ --add-modules=javafx.controls,javafx.fxml"
+        },
+        {
+            "type": "java",
+            "name": "MinimalExampleSquare",
+            "request": "launch",
+            "mainClass": "semaine2.tp02.MinimalExampleSquare",
+            "projectName": "--module-path ./lib/javafx-sdk-24.0.1/lib/ --add-modules=javafx.controls,javafx.fxml",
+            "vmArgs": "--module-path ./lib/javafx-sdk-24.0.1/lib/ --add-modules=javafx.controls,javafx.fxml"
+        },
+        {
+            "type": "java",
+            "name": "Evenements",
+            "request": "launch",
+            "mainClass": "semaine2.td02.Evenements",
+            "projectName": "IUT-R2.02_e8a95030",
+            "vmArgs": "--module-path ./lib/javafx-sdk-24.0.1/lib/ --add-modules=javafx.controls,javafx.fxml"
+        },
+        {
             "name": "Run current file",
             "type": "java",
             "request": "launch",
@@ -13,7 +53,7 @@
             "name": "Run SimpleScene",
             "request": "launch",
             "mainClass": "SimpleScene",
-            "vmArgs" : "--module-path ./lib/javafx-sdk-24.0.1/lib/ --add-modules=javafx.controls,javafx.fxml",
+            "vmArgs": "--module-path ./lib/javafx-sdk-24.0.1/lib/ --add-modules=javafx.controls,javafx.fxml"
         }
     ]
 }

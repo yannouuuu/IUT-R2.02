@@ -1,17 +1,18 @@
+package semaine1;
 import javafx.application.Application;
 import javafx.scene.control.Label;
 import javafx.scene.Scene;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
-import javafx.geometry.Orientation;
-import javafx.scene.layout.HBox;
 import javafx.scene.control.Button;
-import javafx.scene.layout.BorderPane;
 import javafx.geometry.Insets;
 import javafx.stage.Stage;
-import javafx.geometry.Pos;
 import javafx.scene.layout.GridPane;
+// import javafx.geometry.Orientation;
+// import javafx.scene.layout.FlowPane;
+// import javafx.scene.layout.TilePane;
+// import javafx.scene.layout.HBox;
+// import javafx.scene.layout.BorderPane;
+// import javafx.geometry.Pos;
 
 public class SimpleScene extends Application {
 
