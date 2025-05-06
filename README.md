@@ -19,15 +19,15 @@
 
 ## Sommaire
 
-- [Semaine 1 : Introduction à l’interaction, placement](./src/semaine1/)
-- [Semaine 2 : Programmation événementielle](./src/semaine2/)
-- [Semaine 3 : Widgets et événements (1/2)](./src/semaine3/)
-- [Semaine 4 : Widgets et événements (2/2)](./src/semaine4/)
-- [Semaine 5 : Conception et prototypage (1/2)](./src/semaine5/)
-- [Semaine 6 : Conception et prototypage (2/2)](./src/semaine6/)
-- [Semaine 7 : Heuristiques et recommandations](./src/semaine7/)
-- [Semaine 8 : Modèles et théories](./src/semaine8/)
-- [Semaine 9 : Méthodes d’évaluation des IHM](./src/semaine9/)
+- [Semaine 1 : Introduction à l’interaction, placement](./src/)
+- [Semaine 2 : Programmation événementielle](./src/semaine1/)
+- [Semaine 3 : Widgets et événements (1/2)](./src/semaine2/)
+- [Semaine 4 : Widgets et événements (2/2)](./src/semaine2/)
+- [Semaine 5 : Conception et prototypage (1/2)](./src/semaine3/)
+- [Semaine 6 : Conception et prototypage (2/2)](./src/semaine3/)
+- [Semaine 7 : Heuristiques et recommandations](./src/semaine4/)
+- [Semaine 8 : Modèles et théories](./src/semaine5/)
+- [Semaine 9 : Méthodes d’évaluation des IHM](./src/semaine6/)
 
 ### Conseils/Commandes pratiques
 
