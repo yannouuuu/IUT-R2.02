@@ -4,193 +4,300 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import java.util.Vector;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
+import java.util.Vector;
 
 public class MinimalExampleSquare extends Application {
-    // Structure de données pour stocker les carrés 
-    // avec les informations associées
+    // Structure de données principale
     Vector<MyRectangle> rectangles = new Vector<MyRectangle>();
 
-    // Contexte graphique du canvas, nécessaire pour dessiner
-    GraphicsContext gc;
+    // Références au Canvas et à son contexte graphique
     Canvas canvas;
+    GraphicsContext gc;
 
-    // Taille par défaut pour les carrés dessinés
+    // Constante pour la taille des carrés
     private static final double SQUARE_SIZE = 40.0;
 
-    // Variables pour gérer le glisser-déposer (drag and drop)
-    MyRectangle dragTargetRectangle = null; // Le rectangle activement déplacé (anciennement selectedRectangle)
-    double offsetX, offsetY; // Décalage entre le clic souris et le coin du rectangle
+    // États de l'interaction
+    MyRectangle hoveredRectangle = null;        // Rectangle survolé
+    MyRectangle dragTargetRectangle = null;     // Rectangle principal pour le glissement en cours
+    Vector<MyRectangle> multiSelectedRectangles = new Vector<MyRectangle>(); // Rectangles sélectionnés
+    
+    // Pour le glissement
+    double offsetX, offsetY; // Décalage souris pour le glissement du dragTargetRectangle
+    Vector<RelativePosition> dragGroupRelativePositions = new Vector<RelativePosition>(); // Positions relatives pour le glissement de groupe
 
-    // Variable pour gérer le survol de la souris
-    MyRectangle hoveredRectangle = null; // Le rectangle actuellement survolé
-
-    // Variable pour la sélection multiple
-    Vector<MyRectangle> multiSelectedRectangles = new Vector<MyRectangle>();
-
-    // Classe interne pour stocker nos rectangles et potentiellement d'autres informations
+    // Classes internes
     class MyRectangle {
-            public Rectangle rect; // Rectangle JavaFX pour stocker position et dimensions
-            // Autres infos (par exemple, couleur, etc.) pourraient être ajoutées ici
+        public Rectangle rect;
+        // On pourrait ajouter une couleur propre, un ID, etc. ici plus tard
     }
 
+    static class RelativePosition {
+        MyRectangle myRectInstance;
+        double relativeX, relativeY;
 
+        RelativePosition(MyRectangle r, double rx, double ry) {
+            myRectInstance = r;
+            relativeX = rx;
+            relativeY = ry;
+        }
+    }
+
+    @Override
     public void start(Stage stage) {
-            VBox root = new VBox();
-            canvas = new Canvas (500, 500);
-            gc = canvas.getGraphicsContext2D();
+        VBox root = new VBox();
+        canvas = new Canvas(500, 500);
+        gc = canvas.getGraphicsContext2D();
 
-            canvas.setOnMousePressed(e -> {
-                    double x = e.getX();
-                    double y = e.getY();
-                    MyRectangle clickedMyRect = null;
+        setupMouseHandlers();
 
-                    // Trouver le rectangle le plus au-dessus sur lequel on a cliqué
-                    for (int i = rectangles.size() - 1; i >= 0; i--) {
-                        MyRectangle current = rectangles.get(i);
-                        if (current.rect.contains(x, y)) {
-                            clickedMyRect = current;
-                            break;
-                        }
-                    }
-
-                    if (e.isShiftDown()) {
-                        // Mode suppression si SHIFT est appuyé
-                        if (clickedMyRect != null) {
-                            rectangles.remove(clickedMyRect);
-                            multiSelectedRectangles.remove(clickedMyRect); // Retirer de la sélection multiple aussi
-                            if (hoveredRectangle == clickedMyRect) hoveredRectangle = null;
-                        }
-                        dragTargetRectangle = null;
-                    } else if (e.isControlDown()) {
-                        // Mode sélection multiple avec CTRL (SHIFT n'est pas appuyé)
-                        if (clickedMyRect != null) {
-                            if (multiSelectedRectangles.contains(clickedMyRect)) {
-                                multiSelectedRectangles.remove(clickedMyRect);
-                            } else {
-                                multiSelectedRectangles.add(clickedMyRect);
-                                // Amener au premier plan (optionnel mais bon usage)
-                                if (rectangles.remove(clickedMyRect)) {
-                                    rectangles.add(clickedMyRect);
-                                }
-                            }
-                        }
-                        dragTargetRectangle = null; // Pas de drag initié lors de la modification de la sélection multiple
-                    } else {
-                        // Clic normal (ni SHIFT, ni CTRL)
-                        dragTargetRectangle = null; // Réinitialiser la cible de drag précédente
-                        boolean clickedOnExisting = (clickedMyRect != null);
-
-                        if (!clickedOnExisting || !multiSelectedRectangles.contains(clickedMyRect)) {
-                           // Si on clique dans le vide, OU
-                           // si on clique sur un carré qui n'était PAS DÉJÀ dans la sélection multiple,
-                           // alors on efface la sélection multiple précédente.
-                           multiSelectedRectangles.clear();
-                        }
-                        // Si on clique sur un carré déjà sélectionné (sans CTRL), la sélection multiple est conservée
-                        // et ce carré devient la cible du drag.
-
-                        if (clickedMyRect != null) { // Clic sur un rectangle existant
-                            if (!multiSelectedRectangles.contains(clickedMyRect)) { // S'il n'y était pas déjà (cas du !ctrl)
-                                multiSelectedRectangles.add(clickedMyRect);
-                            }
-                            dragTargetRectangle = clickedMyRect;
-                            offsetX = x - clickedMyRect.rect.getX();
-                            offsetY = y - clickedMyRect.rect.getY();
-                            // Amener au premier plan
-                            if (rectangles.remove(clickedMyRect)) {
-                                rectangles.add(clickedMyRect);
-                            }
-                        } else { // Clic dans le vide : créer un nouveau carré
-                            Rectangle newFxRectangle = new Rectangle(x - SQUARE_SIZE / 2, y - SQUARE_SIZE / 2, SQUARE_SIZE, SQUARE_SIZE);
-                            MyRectangle newMyRect = new MyRectangle();
-                            newMyRect.rect = newFxRectangle;
-                            
-                            rectangles.add(newMyRect); // Ajouté à la fin, donc au premier plan
-                            multiSelectedRectangles.add(newMyRect); // Sélectionner le nouveau carré
-                            dragTargetRectangle = newMyRect; // Et le rendre déplaçable
-                            offsetX = SQUARE_SIZE / 2; // Le clic est au centre
-                            offsetY = SQUARE_SIZE / 2;
-                        }
-                    }
-                    repaint();
-            });
-
-            canvas.setOnMouseDragged(e -> {
-                if (dragTargetRectangle != null && !e.isShiftDown()) { 
-                    double x = e.getX();
-                    double y = e.getY();
-                    dragTargetRectangle.rect.setX(x - offsetX);
-                    dragTargetRectangle.rect.setY(y - offsetY);
-                    repaint();
-                }
-            });
-
-            canvas.setOnMouseMoved(e -> {
-                double x = e.getX();
-                double y = e.getY();
-                MyRectangle previouslyHovered = hoveredRectangle;
-                hoveredRectangle = null; // Réinitialiser par défaut
-
-                // Parcourir les rectangles en sens inverse pour prioriser celui du dessus
-                for (int i = rectangles.size() - 1; i >= 0; i--) {
-                    MyRectangle myRect = rectangles.get(i);
-                    if (myRect.rect.contains(x, y)) {
-                        hoveredRectangle = myRect;
-                        break;
-                    }
-                }
-
-                // Redessiner seulement si l'état de survol a changé
-                if (previouslyHovered != hoveredRectangle) {
-                    repaint();
-                }
-            });
-
-            root.getChildren().add(canvas);
-
-            Scene scene = new Scene(root);
-            stage.setTitle("Hello Paint");
-            stage.setScene(scene);
-            stage.show();
+        root.getChildren().add(canvas);
+        Scene scene = new Scene(root);
+        stage.setTitle("Hello Paint Refactored");
+        stage.setScene(scene);
+        stage.show();
     }
 
-    // Méthode qui sert à redessiner tout l'écran
-    // tout le code lié au dessin dans le canvas doit
-    // se trouver dans cette méthode et pas ailleurs.
-    // repaint() est appelée ailleurs dans le code quand
-    // il est nécessaire de redessiner.
-    public void repaint() {
-            // On efface tout
-            gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-            
-            for (MyRectangle r : rectangles) {
-                    Rectangle fxRect = r.rect;
-                    // Choisir la couleur de remplissage en fonction de l'état de survol
-                    if (r == hoveredRectangle) {
-                        gc.setFill(Color.ORANGERED);
-                    } else {
-                        gc.setFill(Color.ORANGE);
-                    }
-                    gc.fillRect(fxRect.getX(), fxRect.getY(), fxRect.getWidth(), fxRect.getHeight());
+    private void setupMouseHandlers() {
+        canvas.setOnMousePressed(this::handleMousePressed);
+        canvas.setOnMouseDragged(this::handleMouseDragged);
+        canvas.setOnMouseReleased(this::handleMouseReleased);
+        canvas.setOnMouseMoved(this::handleMouseMoved);
+    }
 
-                    // Définir le style de la bordure (stroke)
-                    if (multiSelectedRectangles.contains(r)) {
-                        gc.setStroke(Color.BLUE); 
-                        gc.setLineWidth(3.5);   
-                    } else {
-                        gc.setStroke(Color.BLACK); 
-                        gc.setLineWidth(2); 
-                    }
-                    gc.strokeRect(fxRect.getX(), fxRect.getY(), fxRect.getWidth(), fxRect.getHeight());
+    // --- Gestionnaires d'événements principaux ---
+    private void handleMousePressed(MouseEvent e) {
+        double x = e.getX();
+        double y = e.getY();
+        MyRectangle clickedRect = findClickedRectangle(x, y);
+
+        if (isShiftDown(e)) {
+            handleShiftClick(clickedRect);
+        } else if (isControlDown(e)) {
+            handleControlClick(clickedRect);
+        } else {
+            handleNormalClick(clickedRect, x, y);
+        }
+        repaintCanvas();
+    }
+
+    private void handleMouseDragged(MouseEvent e) {
+        if (dragTargetRectangle != null && !isShiftDown(e)) {
+            performDragMovement(e.getX(), e.getY());
+            repaintCanvas();
+        }
+    }
+
+    private void handleMouseReleased(MouseEvent e) {
+        clearDragOperationState();
+        // La sélection multiple persiste après le relâchement
+    }
+
+    private void handleMouseMoved(MouseEvent e) {
+        updateHoverState(e.getX(), e.getY());
+        // repaintCanvas() est appelé dans updateHoverState si nécessaire
+    }
+
+    // --- Logique des clics (appelée par handleMousePressed) ---
+    private void handleShiftClick(MyRectangle clickedRect) {
+        if (clickedRect != null) {
+            deleteRectangle(clickedRect);
+        }
+        clearDragOperationState(); 
+    }
+
+    private void handleControlClick(MyRectangle clickedRect) {
+        if (clickedRect != null) {
+            toggleMultiSelectionState(clickedRect);
+        }
+        clearDragOperationState(); 
+    }
+
+    private void handleNormalClick(MyRectangle clickedRect, double eventX, double eventY) {
+        clearDragOperationState(); // Toujours commencer par réinitialiser l'état de glissement précédent
+
+        if (clickedRect == null) { // Clic dans le vide
+            clearMultiSelection();
+            MyRectangle newRect = createAndAddNewRectangle(eventX, eventY);
+            addRectToMultiSelection(newRect, true); // Le nouveau est sélectionné et mis au premier plan
+            initiateDragForRect(newRect, eventX, eventY);
+        } else { // Clic sur un rectangle existant
+            if (!isMultiSelected(clickedRect)) {
+                clearMultiSelection();
+                addRectToMultiSelection(clickedRect, true);
             }
+            // Que le rect cliqué ait été nouvellement sélectionné ou faisait déjà partie d'une sélection,
+            // il devient la cible du glissement.
+            initiateDragForRect(clickedRect, eventX, eventY);
+        }
+        // Après avoir défini le dragTarget et la sélection, préparer le groupe
+        prepareForGroupDrag(); 
     }
 
+    // --- Méthodes d'action et de gestion d'état ---
+    private MyRectangle findClickedRectangle(double x, double y) {
+        for (int i = rectangles.size() - 1; i >= 0; i--) {
+            MyRectangle current = rectangles.get(i);
+            if (isPointInsideRect(current, x, y)) {
+                return current;
+            }
+        }
+        return null;
+    }
+
+    private void deleteRectangle(MyRectangle rectToDelete) {
+        rectangles.remove(rectToDelete);
+        multiSelectedRectangles.remove(rectToDelete);
+        if (isHovered(rectToDelete)) {
+            hoveredRectangle = null;
+        }
+        if (isDragTarget(rectToDelete)) {
+            dragTargetRectangle = null; // Important si le rect supprimé était la cible du drag
+        }
+    }
+
+    private void toggleMultiSelectionState(MyRectangle rect) {
+        if (isMultiSelected(rect)) {
+            multiSelectedRectangles.remove(rect);
+        } else {
+            multiSelectedRectangles.add(rect);
+            bringToFront(rect); // Mettre au premier plan lors de l'ajout à la sélection
+        }
+    }
+    
+    private void addRectToMultiSelection(MyRectangle rect, boolean bringToFrontIfNeeded) {
+        if (!isMultiSelected(rect)) {
+            multiSelectedRectangles.add(rect);
+        }
+        if (bringToFrontIfNeeded) {
+            bringToFront(rect);
+        }
+    }
+
+    private void clearMultiSelection() {
+        multiSelectedRectangles.clear();
+    }
+
+    private MyRectangle createAndAddNewRectangle(double centerX, double centerY) {
+        Rectangle fxRect = new Rectangle(centerX - SQUARE_SIZE / 2, centerY - SQUARE_SIZE / 2, SQUARE_SIZE, SQUARE_SIZE);
+        MyRectangle newMyRect = new MyRectangle();
+        newMyRect.rect = fxRect;
+        rectangles.add(newMyRect); // Ajout à la liste principale
+        return newMyRect;
+    }
+
+    private void initiateDragForRect(MyRectangle target, double eventX, double eventY) {
+        dragTargetRectangle = target;
+        offsetX = eventX - target.rect.getX();
+        offsetY = eventY - target.rect.getY();
+        // Le fait de cliquer sur un rectangle pour le glisser le met au premier plan dans handleNormalClick
+    }
+
+    private void prepareForGroupDrag() {
+        dragGroupRelativePositions.clear();
+        if (dragTargetRectangle != null && !multiSelectedRectangles.isEmpty()) {
+            for (MyRectangle r_sel : multiSelectedRectangles) {
+                double relX = r_sel.rect.getX() - dragTargetRectangle.rect.getX();
+                double relY = r_sel.rect.getY() - dragTargetRectangle.rect.getY();
+                dragGroupRelativePositions.add(new RelativePosition(r_sel, relX, relY));
+            }
+        }
+    }
+
+    private void performDragMovement(double eventX, double eventY) {
+        double leaderNewX = eventX - offsetX;
+        double leaderNewY = eventY - offsetY;
+
+        for (RelativePosition rp : dragGroupRelativePositions) {
+            rp.myRectInstance.rect.setX(leaderNewX + rp.relativeX);
+            rp.myRectInstance.rect.setY(leaderNewY + rp.relativeY);
+        }
+    }
+
+    private void clearDragOperationState() {
+        dragTargetRectangle = null;
+        dragGroupRelativePositions.clear();
+    }
+
+    private void bringToFront(MyRectangle rect) {
+        if (rectangles.remove(rect)) {
+            rectangles.add(rect); // Ajoute à la fin, donc dessiné en dernier (au-dessus)
+        }
+    }
+
+    private void updateHoverState(double eventX, double eventY) {
+        MyRectangle previouslyHovered = hoveredRectangle;
+        hoveredRectangle = findClickedRectangle(eventX, eventY); // Réutilise findClickedRectangle pour la logique de survol
+
+        if (previouslyHovered != hoveredRectangle) {
+            repaintCanvas();
+        }
+    }
+
+    // --- Méthodes booléennes (prédicats) ---
+    private boolean isShiftDown(MouseEvent e) {
+        return e.isShiftDown();
+    }
+
+    private boolean isControlDown(MouseEvent e) {
+        return e.isControlDown();
+    }
+
+    private boolean isPointInsideRect(MyRectangle myRect, double x, double y) {
+        if (myRect == null || myRect.rect == null) return false;
+        return myRect.rect.contains(x, y);
+    }
+
+    private boolean isMultiSelected(MyRectangle myRect) {
+        return multiSelectedRectangles.contains(myRect);
+    }
+
+    private boolean isHovered(MyRectangle myRect) {
+        return myRect != null && myRect == hoveredRectangle;
+    }
+
+    private boolean isDragTarget(MyRectangle myRect) {
+        return myRect != null && myRect == dragTargetRectangle;
+    }
+
+    // --- Dessin ---
+    private void repaintCanvas() {
+        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        for (MyRectangle r : rectangles) {
+            applyFillStyle(r);
+            gc.fillRect(r.rect.getX(), r.rect.getY(), r.rect.getWidth(), r.rect.getHeight());
+            applyStrokeStyle(r);
+            gc.strokeRect(r.rect.getX(), r.rect.getY(), r.rect.getWidth(), r.rect.getHeight());
+        }
+    }
+
+    private void applyFillStyle(MyRectangle r) {
+        if (isHovered(r)) {
+            gc.setFill(Color.ORANGERED);
+        } else {
+            gc.setFill(Color.ORANGE);
+        }
+    }
+
+    private void applyStrokeStyle(MyRectangle r) {
+        if (isMultiSelected(r)) {
+            gc.setStroke(Color.BLUE);
+            gc.setLineWidth(3.5);
+            gc.setLineDashes(null); 
+        } else {
+            gc.setStroke(Color.BLACK);
+            gc.setLineWidth(2);
+            gc.setLineDashes(null); 
+        }
+    }
+
+    // --- Point d'entrée ---
     public static void main(String[] args) {
-            Application.launch(args);
+        Application.launch(args);
     }
 }
